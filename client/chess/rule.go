@@ -2,15 +2,14 @@ package chess
 
 //PositionStruct 局面结构
 type PositionStruct struct {
-	sdPlayer    int     `json:"sdPlayer"`      // 轮到谁走，0=红方，1=黑方
-	ucpcSquares [256]int `json:"ucpcSquares"` // 棋盘上的棋子
-	RoomId     string     `json:"roomId"`    //棋手ID
+	SdPlayer    int      `json:"SdPlayer"`    // 轮到谁走，0=红方，1=黑方
+	UcpcSquares [256]int `json:"UcpcSquares"` // 棋盘上的棋子
+	RoomId      string   `json:"RoomId"`      //棋手ID
 }
 
 //NewPositionStruct 初始化棋局
 func NewPositionStruct() *PositionStruct {
-	p := &PositionStruct{
-	}
+	p := &PositionStruct{}
 	if p == nil {
 		return nil
 	}
@@ -19,34 +18,34 @@ func NewPositionStruct() *PositionStruct {
 
 //startup 初始化棋盘
 func (p *PositionStruct) startup() {
-	p.sdPlayer = 0
+	p.SdPlayer = 0
 	for sq := 0; sq < 256; sq++ {
-		p.ucpcSquares[sq] = cucpcStartup[sq]
+		p.UcpcSquares[sq] = cucpcStartup[sq]
 	}
 }
 
 //changeSide 交换走子方
 func (p *PositionStruct) changeSide() {
-	p.sdPlayer = 1 - p.sdPlayer
+	p.SdPlayer = 1 - p.SdPlayer
 }
 
 //addPiece 在棋盘上放一枚棋子
 func (p *PositionStruct) addPiece(sq, pc int) {
-	p.ucpcSquares[sq] = pc
+	p.UcpcSquares[sq] = pc
 }
 
 //delPiece 从棋盘上拿走一枚棋子
 func (p *PositionStruct) delPiece(sq int) {
-	p.ucpcSquares[sq] = 0
+	p.UcpcSquares[sq] = 0
 }
 
 //movePiece 搬一步棋的棋子
 func (p *PositionStruct) movePiece(mv int) int {
 	sqSrc := src(mv)
 	sqDst := dst(mv)
-	pcCaptured := p.ucpcSquares[sqDst]
+	pcCaptured := p.UcpcSquares[sqDst]
 	p.delPiece(sqDst)
-	pc := p.ucpcSquares[sqSrc]
+	pc := p.UcpcSquares[sqSrc]
 	p.delPiece(sqSrc)
 	p.addPiece(sqDst, pc)
 	return pcCaptured
@@ -66,15 +65,15 @@ func (p *PositionStruct) makeMove(mv int) bool {
 //generateMoves 生成所有走法
 func (p *PositionStruct) generateMoves(mvs []int) int {
 	nGenMoves, pcSrc, sqDst, pcDst, nDelta := 0, 0, 0, 0, 0
-	pcSelfSide := sideTag(p.sdPlayer)
-	pcOppSide := oppSideTag(p.sdPlayer)
+	pcSelfSide := sideTag(p.SdPlayer)
+	pcOppSide := oppSideTag(p.SdPlayer)
 
 	for sqSrc := 0; sqSrc < 256; sqSrc++ {
 		if !inBoard(sqSrc) {
 			continue
 		}
 		// 找到一个本方棋子，再做以下判断：
-		pcSrc = p.ucpcSquares[sqSrc]
+		pcSrc = p.UcpcSquares[sqSrc]
 		if (pcSrc & pcSelfSide) == 0 {
 			continue
 		}
@@ -87,7 +86,7 @@ func (p *PositionStruct) generateMoves(mvs []int) int {
 				if !inFort(sqDst) {
 					continue
 				}
-				pcDst = p.ucpcSquares[sqDst]
+				pcDst = p.UcpcSquares[sqDst]
 				if pcDst&pcSelfSide == 0 {
 					mvs[nGenMoves] = move(sqSrc, sqDst)
 					nGenMoves++
@@ -100,7 +99,7 @@ func (p *PositionStruct) generateMoves(mvs []int) int {
 				if !inFort(sqDst) {
 					continue
 				}
-				pcDst = p.ucpcSquares[sqDst]
+				pcDst = p.UcpcSquares[sqDst]
 				if pcDst&pcSelfSide == 0 {
 					mvs[nGenMoves] = move(sqSrc, sqDst)
 					nGenMoves++
@@ -110,11 +109,11 @@ func (p *PositionStruct) generateMoves(mvs []int) int {
 		case PieceXiang:
 			for i := 0; i < 4; i++ {
 				sqDst = sqSrc + ccShiDelta[i]
-				if !(inBoard(sqDst) && noRiver(sqDst, p.sdPlayer) && p.ucpcSquares[sqDst] == 0) {
+				if !(inBoard(sqDst) && noRiver(sqDst, p.SdPlayer) && p.UcpcSquares[sqDst] == 0) {
 					continue
 				}
 				sqDst += ccShiDelta[i]
-				pcDst = p.ucpcSquares[sqDst]
+				pcDst = p.UcpcSquares[sqDst]
 				if pcDst&pcSelfSide == 0 {
 					mvs[nGenMoves] = move(sqSrc, sqDst)
 					nGenMoves++
@@ -124,7 +123,7 @@ func (p *PositionStruct) generateMoves(mvs []int) int {
 		case PieceMa:
 			for i := 0; i < 4; i++ {
 				sqDst = sqSrc + ccJiangDelta[i]
-				if p.ucpcSquares[sqDst] != 0 {
+				if p.UcpcSquares[sqDst] != 0 {
 					continue
 				}
 				for j := 0; j < 2; j++ {
@@ -132,7 +131,7 @@ func (p *PositionStruct) generateMoves(mvs []int) int {
 					if !inBoard(sqDst) {
 						continue
 					}
-					pcDst = p.ucpcSquares[sqDst]
+					pcDst = p.UcpcSquares[sqDst]
 					if pcDst&pcSelfSide == 0 {
 						mvs[nGenMoves] = move(sqSrc, sqDst)
 						nGenMoves++
@@ -145,7 +144,7 @@ func (p *PositionStruct) generateMoves(mvs []int) int {
 				nDelta = ccJiangDelta[i]
 				sqDst = sqSrc + nDelta
 				for inBoard(sqDst) {
-					pcDst = p.ucpcSquares[sqDst]
+					pcDst = p.UcpcSquares[sqDst]
 					if pcDst == 0 {
 						mvs[nGenMoves] = move(sqSrc, sqDst)
 						nGenMoves++
@@ -166,7 +165,7 @@ func (p *PositionStruct) generateMoves(mvs []int) int {
 				nDelta = ccJiangDelta[i]
 				sqDst = sqSrc + nDelta
 				for inBoard(sqDst) {
-					pcDst = p.ucpcSquares[sqDst]
+					pcDst = p.UcpcSquares[sqDst]
 					if pcDst == 0 {
 						mvs[nGenMoves] = move(sqSrc, sqDst)
 						nGenMoves++
@@ -177,7 +176,7 @@ func (p *PositionStruct) generateMoves(mvs []int) int {
 				}
 				sqDst += nDelta
 				for inBoard(sqDst) {
-					pcDst = p.ucpcSquares[sqDst]
+					pcDst = p.UcpcSquares[sqDst]
 					if pcDst != 0 {
 						if (pcDst & pcOppSide) != 0 {
 							mvs[nGenMoves] = move(sqSrc, sqDst)
@@ -190,19 +189,19 @@ func (p *PositionStruct) generateMoves(mvs []int) int {
 			}
 			break
 		case PieceBing:
-			sqDst = squareForward(sqSrc, p.sdPlayer)
+			sqDst = squareForward(sqSrc, p.SdPlayer)
 			if inBoard(sqDst) {
-				pcDst = p.ucpcSquares[sqDst]
+				pcDst = p.UcpcSquares[sqDst]
 				if pcDst&pcSelfSide == 0 {
 					mvs[nGenMoves] = move(sqSrc, sqDst)
 					nGenMoves++
 				}
 			}
-			if hasRiver(sqSrc, p.sdPlayer) {
+			if hasRiver(sqSrc, p.SdPlayer) {
 				for nDelta = -1; nDelta <= 1; nDelta += 2 {
 					sqDst = sqSrc + nDelta
 					if inBoard(sqDst) {
-						pcDst = p.ucpcSquares[sqDst]
+						pcDst = p.UcpcSquares[sqDst]
 						if pcDst&pcSelfSide == 0 {
 							mvs[nGenMoves] = move(sqSrc, sqDst)
 							nGenMoves++
@@ -219,32 +218,32 @@ func (p *PositionStruct) generateMoves(mvs []int) int {
 //checked 判断是否被将军
 func (p *PositionStruct) checked() bool {
 	nDelta, sqDst, pcDst := 0, 0, 0
-	pcSelfSide := sideTag(p.sdPlayer)
-	pcOppSide := oppSideTag(p.sdPlayer)
+	pcSelfSide := sideTag(p.SdPlayer)
+	pcOppSide := oppSideTag(p.SdPlayer)
 
 	for sqSrc := 0; sqSrc < 256; sqSrc++ {
 		//找到棋盘上的帅(将)，再做以下判断：
-		if !inBoard(sqSrc) || p.ucpcSquares[sqSrc] != pcSelfSide+PieceJiang {
+		if !inBoard(sqSrc) || p.UcpcSquares[sqSrc] != pcSelfSide+PieceJiang {
 			continue
 		}
 
 		//判断是否被对方的兵(卒)将军
-		if p.ucpcSquares[squareForward(sqSrc, p.sdPlayer)] == pcOppSide+PieceBing {
+		if p.UcpcSquares[squareForward(sqSrc, p.SdPlayer)] == pcOppSide+PieceBing {
 			return true
 		}
 		for nDelta = -1; nDelta <= 1; nDelta += 2 {
-			if p.ucpcSquares[sqSrc+nDelta] == pcOppSide+PieceBing {
+			if p.UcpcSquares[sqSrc+nDelta] == pcOppSide+PieceBing {
 				return true
 			}
 		}
 
 		//判断是否被对方的马将军(以仕(士)的步长当作马腿)
 		for i := 0; i < 4; i++ {
-			if p.ucpcSquares[sqSrc+ccShiDelta[i]] != 0 {
+			if p.UcpcSquares[sqSrc+ccShiDelta[i]] != 0 {
 				continue
 			}
 			for j := 0; j < 2; j++ {
-				pcDst = p.ucpcSquares[sqSrc+ccMaCheckDelta[i][j]]
+				pcDst = p.UcpcSquares[sqSrc+ccMaCheckDelta[i][j]]
 				if pcDst == pcOppSide+PieceMa {
 					return true
 				}
@@ -256,7 +255,7 @@ func (p *PositionStruct) checked() bool {
 			nDelta = ccJiangDelta[i]
 			sqDst = sqSrc + nDelta
 			for inBoard(sqDst) {
-				pcDst = p.ucpcSquares[sqDst]
+				pcDst = p.UcpcSquares[sqDst]
 				if pcDst != 0 {
 					if pcDst == pcOppSide+PieceJu || pcDst == pcOppSide+PieceJiang {
 						return true
@@ -267,7 +266,7 @@ func (p *PositionStruct) checked() bool {
 			}
 			sqDst += nDelta
 			for inBoard(sqDst) {
-				pcDst = p.ucpcSquares[sqDst]
+				pcDst = p.UcpcSquares[sqDst]
 				if pcDst != 0 {
 					if pcDst == pcOppSide+PiecePao {
 						return true
@@ -286,7 +285,7 @@ func (p *PositionStruct) checked() bool {
 func (p *PositionStruct) undoMovePiece(mv, pcCaptured int) {
 	sqSrc := src(mv)
 	sqDst := dst(mv)
-	pc := p.ucpcSquares[sqDst]
+	pc := p.UcpcSquares[sqDst]
 	p.delPiece(sqDst)
 	p.addPiece(sqSrc, pc)
 	if pcCaptured != 0 {
@@ -310,4 +309,3 @@ func (p *PositionStruct) isMate() bool {
 	}
 	return true
 }
-

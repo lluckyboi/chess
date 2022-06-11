@@ -168,7 +168,7 @@ func (g *Game) drawBoard(screen *ebiten.Image) {
 				yPos = BoardEdge + (y-Top)*SquareSize
 			}
 			sq := squareXY(x, y)
-			pc := g.singlePosition.ucpcSquares[sq]
+			pc := g.singlePosition.UcpcSquares[sq]
 			if pc != 0 {
 				g.drawChess(xPos, yPos+5, screen, g.images[pc])
 			}
@@ -182,18 +182,18 @@ func (g *Game) drawBoard(screen *ebiten.Image) {
 //clickSquare 点击格子处理
 func (g *Game) clickSquare(screen *ebiten.Image, sq int) {
 	//检查是否轮到自己
-	if g.singlePosition.sdPlayer == g.side {
+	if g.singlePosition.SdPlayer == g.side {
 		//得到点击的格子上的棋子
 		pc := 0
 		//判断是否翻转
 		if g.bFlipped {
-			pc = g.singlePosition.ucpcSquares[squareFlip(sq)]
+			pc = g.singlePosition.UcpcSquares[squareFlip(sq)]
 		} else {
-			pc = g.singlePosition.ucpcSquares[sq]
+			pc = g.singlePosition.UcpcSquares[sq]
 		}
 
 		//sideTag 红方为8 黑方为16
-		if pc&sideTag(g.singlePosition.sdPlayer) != 0 {
+		if pc&sideTag(g.singlePosition.SdPlayer) != 0 {
 			//如果点击自己的棋子，那么直接选中
 			g.sqSelected = sq
 			g.playAudio(MusicSelect)

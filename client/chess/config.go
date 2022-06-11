@@ -1,6 +1,5 @@
 package chess
 
-
 const (
 	//ImgChessBoard 棋盘
 	ImgChessBoard = 1
@@ -66,7 +65,6 @@ const (
 	Left   = 3
 	Right  = 11
 )
-
 
 // 棋盘初始设置
 var cucpcStartup = [256]int{
@@ -357,15 +355,15 @@ func move(sqSrc, sqDst int) int {
 func (p *PositionStruct) legalMove(mv int) bool {
 	//判断起始格是否有自己的棋子
 	sqSrc := src(mv)
-	pcSrc := p.ucpcSquares[sqSrc]
-	pcSelfSide := sideTag(p.sdPlayer)
+	pcSrc := p.UcpcSquares[sqSrc]
+	pcSelfSide := sideTag(p.SdPlayer)
 	if (pcSrc & pcSelfSide) == 0 {
 		return false
 	}
 
 	//判断目标格是否有自己的棋子
 	sqDst := dst(mv)
-	pcDst := p.ucpcSquares[sqDst]
+	pcDst := p.UcpcSquares[sqDst]
 	if (pcDst & pcSelfSide) != 0 {
 		return false
 	}
@@ -379,10 +377,10 @@ func (p *PositionStruct) legalMove(mv int) bool {
 		return inFort(sqDst) && shiSpan(sqSrc, sqDst)
 	case PieceXiang:
 		return sameRiver(sqSrc, sqDst) && xiangSpan(sqSrc, sqDst) &&
-			p.ucpcSquares[xiangPin(sqSrc, sqDst)] == 0
+			p.UcpcSquares[xiangPin(sqSrc, sqDst)] == 0
 	case PieceMa:
 		sqPin := maPin(sqSrc, sqDst)
-		return sqPin != sqSrc && p.ucpcSquares[sqPin] == 0
+		return sqPin != sqSrc && p.UcpcSquares[sqPin] == 0
 	case PieceJu, PiecePao:
 		nDelta := 0
 		if sameX(sqSrc, sqDst) {
@@ -401,14 +399,14 @@ func (p *PositionStruct) legalMove(mv int) bool {
 			return false
 		}
 		sqPin := sqSrc + nDelta
-		for sqPin != sqDst && p.ucpcSquares[sqPin] == 0 {
+		for sqPin != sqDst && p.UcpcSquares[sqPin] == 0 {
 			sqPin += nDelta
 		}
 		if sqPin == sqDst {
 			return pcDst == 0 || tmpPiece == PieceJu
 		} else if pcDst != 0 && tmpPiece == PiecePao {
 			sqPin += nDelta
-			for sqPin != sqDst && p.ucpcSquares[sqPin] == 0 {
+			for sqPin != sqDst && p.UcpcSquares[sqPin] == 0 {
 				sqPin += nDelta
 			}
 			return sqPin == sqDst
@@ -416,10 +414,10 @@ func (p *PositionStruct) legalMove(mv int) bool {
 			return false
 		}
 	case PieceBing:
-		if hasRiver(sqDst, p.sdPlayer) && (sqDst == sqSrc-1 || sqDst == sqSrc+1) {
+		if hasRiver(sqDst, p.SdPlayer) && (sqDst == sqSrc-1 || sqDst == sqSrc+1) {
 			return true
 		}
-		return sqDst == squareForward(sqSrc, p.sdPlayer)
+		return sqDst == squareForward(sqSrc, p.SdPlayer)
 	default:
 
 	}

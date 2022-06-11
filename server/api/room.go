@@ -48,7 +48,7 @@ func enterroom(c *gin.Context) {
 	//可以加入可以观战
 	mplock.Lock()
 	room[roomid] = conn
-	roomcount[roomid]++
+	roomcount[roomid] += 1
 	mplock.Unlock()
 
 	resp := EnterRoomResp{}
@@ -67,6 +67,7 @@ func enterroom(c *gin.Context) {
 			Num:   roomcount[roomid],
 		}
 	}
+
 	fmt.Println(resp)
 	conn.WriteJSON(resp)
 	go Rec(roomid, conn)
@@ -79,6 +80,9 @@ func checkroom(c *gin.Context) {
 			"status": true,
 		})
 	} else {
-
+		c.JSON(200, gin.H{
+			"status": false,
+		})
 	}
+	fmt.Println(roomcount[roomId])
 }

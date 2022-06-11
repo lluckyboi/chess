@@ -17,9 +17,9 @@ const (
 )
 
 type PositionStruct struct {
-	SdPlayer    int      `json:"sdPlayer"`    // 轮到谁走，0=红方，1=黑方
-	UcpcSquares [256]int `json:"ucpcSquares"` // 棋盘上的棋子
-	RoomId      string   `json:"roomId"`      //棋手ID
+	SdPlayer    int      `json:"SdPlayer"`    // 轮到谁走，0=红方，1=黑方
+	UcpcSquares [256]int `json:"UcpcSquares"` // 棋盘上的棋子
+	RoomId      string   `json:"RoomId"`      //棋手ID
 }
 
 var wg sync.WaitGroup //进程锁
@@ -79,6 +79,8 @@ func (this *Server) broaddata(conn net.Conn) {
 		//防止错误数据影响后续读入
 		var check []byte
 		check = data[0:ReceiveDataLength]
+		log.Println(string(check))
+
 		errr := json.Unmarshal(check, &mes)
 		if errr != nil {
 			log.Println(errr)

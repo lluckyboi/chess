@@ -1,3 +1,6 @@
+//go:build linux && amd64 && go1.15 && !cgo
+// +build linux,amd64,go1.15,!cgo
+
 package main
 
 import (
@@ -30,13 +33,15 @@ func main() {
 	if lmsg.Code != 200 {
 		return
 	}
-	fmt.Println(lmsg.UserName + "登录注册成功")
 
 	//拿token
 	gmsg := tool.GetToken(mail, name, accode)
 	if gmsg.Code != 2000 {
+		fmt.Println("出错了")
 		return
 	}
+
+	fmt.Println(lmsg.UserName + "登录注册成功")
 
 	//输入房间号
 	var roomId string
@@ -70,11 +75,10 @@ func main() {
 				break
 			}
 			time.Sleep(time.Second)
-
-			break
 		}
 		fmt.Println("success")
 		chess.Conn = c
+		defer c.Close()
 		//启动游戏 先进入的为红方
 		chess.NewGame(emsg.Num - 1)
 	}

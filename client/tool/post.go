@@ -100,7 +100,6 @@ func EnterRoom(roomId string, token string) (EnterRoomResp, *websocket.Conn) {
 	if err != nil {
 		log.Fatal("dial:", err)
 	}
-	defer c.Close()
 
 	_, message, err := c.ReadMessage()
 	if err != nil {
@@ -119,12 +118,17 @@ func CheckRoomCount(roomId string) CheckRoomCountResp {
 	if err != nil {
 		log.Println(err)
 	}
+
 	defer resp.Body.Close()
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err)
 	}
+
 	msg := CheckRoomCountResp{}
 	json.Unmarshal(body, &msg)
+	log.Println(msg)
+
 	return msg
 }
