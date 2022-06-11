@@ -18,7 +18,7 @@ const (
 	QQMailSender   = "1598273095@qq.com"
 	QQMailTitle    = "验证"
 	SMTPAdr        = "smtp.qq.com"
-	SMTPPort       = 25
+	SMTPPort       = 587
 	MailListSize   = 2048
 )
 
@@ -103,7 +103,6 @@ func SendMail(mails []string) error {
 	return nil
 }
 
-
 //jwt鉴权
 func authHandler(c *gin.Context) {
 	// 用户发送用户名和邮箱以及最近的验证码过来
@@ -112,15 +111,15 @@ func authHandler(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code": 2001,
-			"inf":    "无效的参数",
-			"err":    err,
+			"inf":  "无效的参数",
+			"err":  err,
 		})
 		return
 	}
 	if MalilList[User.UserMail] != User.AcCode {
 		c.JSON(http.StatusOK, gin.H{
 			"code": 200,
-			"err":    "验证码错误",
+			"err":  "验证码错误",
 		})
 		return
 	}
@@ -131,22 +130,22 @@ func authHandler(c *gin.Context) {
 	if errr != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code": 200,
-			"err":    errr,
-			"info":   User,
+			"err":  errr,
+			"info": User,
 		})
 		return
 	}
 	if !n {
 		c.JSON(http.StatusOK, gin.H{
 			"code": 200,
-			"info":   "姓名或邮箱错误",
+			"info": "姓名或邮箱错误",
 		})
 	} else {
 		us, err := service.GetUserInfo(User.UserName)
 		if err != nil {
 			c.JSON(http.StatusOK, gin.H{
 				"code": 500,
-				"info":   "服务器错误",
+				"info": "服务器错误",
 			})
 			return
 		}
@@ -155,15 +154,15 @@ func authHandler(c *gin.Context) {
 		// 生成Token
 		tokenString, _ := model.GenToken(User)
 		c.JSON(http.StatusOK, gin.H{
-			"code": 2000,
-			"info":   "success",
-			"token":  tokenString,
+			"code":  2000,
+			"info":  "success",
+			"token": tokenString,
 		})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"code": 2002,
-		"info":   "鉴权失败",
+		"info": "鉴权失败",
 	})
 	return
 }

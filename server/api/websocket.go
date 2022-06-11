@@ -13,7 +13,7 @@ import (
 
 const (
 	DelayTime         = time.Second / 20 //延迟
-	ReceiveDataLength = 258 * 4          //接受数据长度
+	ReceiveDataLength = 589              //接受数据长度
 )
 
 type PositionStruct struct {
@@ -29,11 +29,11 @@ var up = websocket.Upgrader{
 	},
 } //websocket协议升级结构体
 
-var MsgCh = make(chan PositionStruct, 50)   //信息广播通道
+var MsgCh = make(chan PositionStruct, 500)  //信息广播通道
 var mplock sync.Mutex                       //map锁
 var mlock sync.Mutex                        //map锁
-var room = make(map[string]*websocket.Conn) //房间map
-var roomcount = make(map[string]int)
+var room = make(map[*websocket.Conn]string) //房间map
+var roomcount = make(map[string]int)        //房间人数
 
 type Server struct {
 	Ip   string
@@ -55,6 +55,7 @@ func (this *Server) Start() {
 		fmt.Println("net listen err:", err)
 	}
 	defer listener.Close()
+	//持续监听端口
 	for {
 		con, err := listener.Accept()
 		if err != nil {
@@ -70,22 +71,21 @@ func (this *Server) broaddata(conn net.Conn) {
 	data := make([]byte, ReceiveDataLength)
 	//持续读取数据
 	for {
-		_, err := conn.Read(data)
+		n, err := conn.Read(data)
 		if err != nil {
 			//出口
 			log.Println(err)
 			return
 		}
-		//防止错误数据影响后续读入
 		var check []byte
-		check = data[0:ReceiveDataLength]
-		log.Println(string(check))
-
+		check = data[0:n]
+		log.Println(n)
 		errr := json.Unmarshal(check, &mes)
 		if errr != nil {
 			log.Println(errr)
 			continue
 		}
+		log.Println(mes)
 		MsgCh <- mes
 	}
 }
@@ -97,8 +97,11 @@ func WsBroadcast() {
 		case Msg := <-MsgCh:
 			mplock.Lock()
 			for i, j := range room {
-				if Msg.RoomId == i {
-					j.WriteJSON(Msg)
+				if Msg.RoomId == j {
+					err := i.WriteJSON(Msg)
+					if err != nil {
+						log.Println("ws board err ", err)
+					}
 				}
 			}
 			mplock.Unlock()

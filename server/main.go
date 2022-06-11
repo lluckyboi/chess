@@ -5,11 +5,11 @@ import (
 	"MyChess/server/dao"
 )
 
-func main()  {
+func main() {
 	//先连接数据库
 	dao.RUNDB()
 	//接受机器数据的服务
-	sev := api.NewServer("0.0.0.0", 8082)
+	sev := api.NewServer("0.0.0.0", 8084)
 	//广播ws
 	go api.WsBroadcast()
 	//启动tcp服务

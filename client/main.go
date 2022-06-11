@@ -1,6 +1,3 @@
-//go:build linux && amd64 && go1.15 && !cgo
-// +build linux,amd64,go1.15,!cgo
-
 package main
 
 import (
@@ -63,7 +60,7 @@ func main() {
 	}
 
 	//预处理资源
-	tool.FileToByte("./resource", "./chess")
+	tool.FileToByte("./client/resource", "./client/chess")
 
 	//如果成功加入对战
 	if emsg.Enter && emsg.Play {
@@ -79,7 +76,11 @@ func main() {
 		fmt.Println("success")
 		chess.Conn = c
 		defer c.Close()
+		chess.RoomId = roomId
 		//启动游戏 先进入的为红方
 		chess.NewGame(emsg.Num - 1)
+	} else if emsg.Enter && !emsg.Play {
+		//观战
+
 	}
 }

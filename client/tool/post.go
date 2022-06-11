@@ -38,8 +38,11 @@ type CheckRoomCountResp struct {
 	Status bool `json:"status"`
 }
 
+const addr = "http://39.106.81.229"
+const port = "9924"
+
 func GetMailAc(mail string) MailResp {
-	resp, err := http.PostForm("http://localhost:9921/getmailac",
+	resp, err := http.PostForm(addr+":"+port+"/getmailac",
 		url.Values{"UserMail": {mail}})
 	if err != nil {
 		log.Println(err)
@@ -55,7 +58,7 @@ func GetMailAc(mail string) MailResp {
 }
 
 func Login(mail, name, accode string) LoginResp {
-	resp, err := http.PostForm("http://localhost:9921/login",
+	resp, err := http.PostForm(addr+":"+port+"/login",
 		url.Values{"UserMail": {mail}, "UserName": {name}, "accessCode": {accode}})
 	if err != nil {
 		log.Println(err)
@@ -71,7 +74,7 @@ func Login(mail, name, accode string) LoginResp {
 }
 
 func GetToken(mail, name, accode string) GetTokenResp {
-	resp, err := http.PostForm("http://localhost:9921/auth",
+	resp, err := http.PostForm(addr+":"+port+"/auth",
 		url.Values{"UserMail": {mail}, "UserName": {name}, "accessCode": {accode}})
 	if err != nil {
 		log.Println(err)
@@ -93,7 +96,7 @@ func EnterRoom(roomId string, token string) (EnterRoomResp, *websocket.Conn) {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
-	u := url.URL{Scheme: "ws", Host: "127.0.0.1:9921", Path: "/enterroom/" + roomId}
+	u := url.URL{Scheme: "ws", Host: "39.106.81.229:9924", Path: "/enterroom/" + roomId}
 	log.Printf("connecting to %s", u.String())
 
 	c, _, err := websocket.DefaultDialer.Dial(u.String(), headers)
@@ -113,7 +116,7 @@ func EnterRoom(roomId string, token string) (EnterRoomResp, *websocket.Conn) {
 }
 
 func CheckRoomCount(roomId string) CheckRoomCountResp {
-	resp, err := http.PostForm("http://localhost:9921/checkroomcount",
+	resp, err := http.PostForm(addr+":"+port+"/checkroomcount",
 		url.Values{"roomId": {roomId}})
 	if err != nil {
 		log.Println(err)

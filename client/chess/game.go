@@ -16,6 +16,7 @@ import (
 	"image/color"
 	_ "image/png"
 	"log"
+	"sync"
 )
 
 //Game 象棋窗口
@@ -33,6 +34,8 @@ type Game struct {
 }
 
 var Conn *websocket.Conn
+var RoomId string
+var wg sync.WaitGroup
 
 //NewGame 创建象棋程序
 func NewGame(sd int) bool {
@@ -59,23 +62,34 @@ func NewGame(sd int) bool {
 		return false
 	}
 
+	game.showValue = "by fxr"
+
 	//初始化棋盘 红方先走
 	game.singlePosition.startup()
-	//开协程ws轮询更新棋盘
+
+	//写入roomId
+	game.singlePosition.RoomId = RoomId
+
+	//更新棋盘
+	wg.Add(1)
 	go UpdateBoard(game)
 
 	//设置窗口大小
 	ebiten.SetWindowSize(BoardWidth, BoardHeight)
 	//标题
 	ebiten.SetWindowTitle("双人象棋")
+	//刷新帧数20
+	ebiten.SetMaxTPS(20)
+
 	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)
 		return false
 	}
+	wg.Wait()
 	return true
 }
 
-//Update 更新状态，1秒60帧 可以加载地图
+//Update 更新状态，1秒20帧 可以加载地图
 func (g *Game) Update(screen *ebiten.Image) error {
 	// 鼠标点一下就更新
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
@@ -181,17 +195,16 @@ func (g *Game) drawBoard(screen *ebiten.Image) {
 
 //clickSquare 点击格子处理
 func (g *Game) clickSquare(screen *ebiten.Image, sq int) {
+	//得到点击的格子上的棋子
+	pc := 0
+	//判断是否翻转
+	if g.bFlipped {
+		pc = g.singlePosition.UcpcSquares[squareFlip(sq)]
+	} else {
+		pc = g.singlePosition.UcpcSquares[sq]
+	}
 	//检查是否轮到自己
 	if g.singlePosition.SdPlayer == g.side {
-		//得到点击的格子上的棋子
-		pc := 0
-		//判断是否翻转
-		if g.bFlipped {
-			pc = g.singlePosition.UcpcSquares[squareFlip(sq)]
-		} else {
-			pc = g.singlePosition.UcpcSquares[sq]
-		}
-
 		//sideTag 红方为8 黑方为16
 		if pc&sideTag(g.singlePosition.SdPlayer) != 0 {
 			//如果点击自己的棋子，那么直接选中
@@ -205,9 +218,8 @@ func (g *Game) clickSquare(screen *ebiten.Image, sq int) {
 				if g.singlePosition.makeMove(mv) {
 					g.mvLast = mv
 					g.sqSelected = 0
-					//ws 更新对方棋盘
+					//ws 更新棋盘
 					UpdateOtherBoard(g)
-
 					if g.singlePosition.isMate() {
 						// 如果分出胜负，那么播放胜负的声音，并且弹出不带声音的提示框
 						g.playAudio(MusicGameWin)

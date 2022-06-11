@@ -22,7 +22,7 @@ func Rec(roomid string, conn *websocket.Conn) {
 			log.Println("coon.ReadMessage() err:", err)
 			//如果是客户端发送，再close一遍
 			conn.Close()
-			delete(room, roomid)
+			delete(room, conn)
 			delete(roomcount, roomid)
 			return
 		}
@@ -47,7 +47,7 @@ func enterroom(c *gin.Context) {
 
 	//可以加入可以观战
 	mplock.Lock()
-	room[roomid] = conn
+	room[conn] = roomid
 	roomcount[roomid] += 1
 	mplock.Unlock()
 
