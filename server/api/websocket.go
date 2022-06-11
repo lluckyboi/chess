@@ -1,7 +1,6 @@
 package api
 
 import (
-	"MyChess/client/chess"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
@@ -14,9 +13,14 @@ import (
 
 const (
 	DelayTime         = time.Second / 20 //延迟
-	ReceiveDataLength = 258*4            //接受数据长度
+	ReceiveDataLength = 258 * 4          //接受数据长度
 )
 
+type PositionStruct struct {
+	SdPlayer    int      `json:"sdPlayer"`    // 轮到谁走，0=红方，1=黑方
+	UcpcSquares [256]int `json:"ucpcSquares"` // 棋盘上的棋子
+	RoomId      string   `json:"roomId"`      //棋手ID
+}
 
 var wg sync.WaitGroup //进程锁
 var up = websocket.Upgrader{
@@ -25,10 +29,10 @@ var up = websocket.Upgrader{
 	},
 } //websocket协议升级结构体
 
-var MsgCh = make(chan chess.PositionStruct, 50)       //信息广播通道
-var mplock sync.Mutex                      			  //map锁
-var mlock sync.Mutex                        		  //map锁
-var room = make(map[string]*websocket.Conn)           //房间map
+var MsgCh = make(chan PositionStruct, 50)   //信息广播通道
+var mplock sync.Mutex                       //map锁
+var mlock sync.Mutex                        //map锁
+var room = make(map[string]*websocket.Conn) //房间map
 var roomcount = make(map[string]int)
 
 type Server struct {
@@ -62,7 +66,7 @@ func (this *Server) Start() {
 
 func (this *Server) broaddata(conn net.Conn) {
 	log.Println("tcp 连接成功")
-	var mes chess.PositionStruct
+	var mes PositionStruct
 	data := make([]byte, ReceiveDataLength)
 	//持续读取数据
 	for {
@@ -99,3 +103,14 @@ func WsBroadcast() {
 		}
 	}
 }
+
+//func test(c *gin.Context){
+//	ps:=PositionStruct{
+//		SdPlayer:    0,
+//		UcpcSquares: [256]int{0,1,2,2,3,1,23,5,45,},
+//		RoomId:      "12365",
+//	}
+//	c.JSON(200,gin.H{
+//		"ps":ps,
+//	})
+//}

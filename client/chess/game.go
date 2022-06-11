@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/golang/freetype/truetype"
+	"github.com/gorilla/websocket"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/audio"
 	"github.com/hajimehoshi/ebiten/audio/wav"
@@ -28,8 +29,10 @@ type Game struct {
 	audios         map[int]*audio.Player //音效
 	audioContext   *audio.Context        //音效器
 	singlePosition *PositionStruct       //棋局单例
-	side 		  int   				 //玩家是哪一方
+	side           int                   //玩家是哪一方
 }
+
+var Conn *websocket.Conn
 
 //NewGame 创建象棋程序
 func NewGame(sd int) bool {
@@ -37,7 +40,7 @@ func NewGame(sd int) bool {
 		images:         make(map[int]*ebiten.Image),
 		audios:         make(map[int]*audio.Player),
 		singlePosition: NewPositionStruct(),
-		side: 			sd,
+		side:           sd,
 	}
 	if game == nil || game.singlePosition == nil {
 		return false
@@ -58,7 +61,8 @@ func NewGame(sd int) bool {
 
 	//初始化棋盘 红方先走
 	game.singlePosition.startup()
-	//开协程tcp轮询更新棋盘
+	//开协程ws轮询更新棋盘
+	go UpdateBoard(game)
 
 	//设置窗口大小
 	ebiten.SetWindowSize(BoardWidth, BoardHeight)
@@ -177,52 +181,58 @@ func (g *Game) drawBoard(screen *ebiten.Image) {
 
 //clickSquare 点击格子处理
 func (g *Game) clickSquare(screen *ebiten.Image, sq int) {
-	//得到点击的格子上的棋子
-	pc := 0
-	//判断是否翻转
-	if g.bFlipped {
-		pc = g.singlePosition.ucpcSquares[squareFlip(sq)]
-	} else {
-		pc = g.singlePosition.ucpcSquares[sq]
-	}
+	//检查是否轮到自己
+	if g.singlePosition.sdPlayer == g.side {
+		//得到点击的格子上的棋子
+		pc := 0
+		//判断是否翻转
+		if g.bFlipped {
+			pc = g.singlePosition.ucpcSquares[squareFlip(sq)]
+		} else {
+			pc = g.singlePosition.ucpcSquares[sq]
+		}
 
-	//sideTag 红方为8 黑方为16
-	if (pc!=0) && (g.side==g.singlePosition.sdPlayer) {
-		//如果点击自己的棋子，那么直接选中
-		g.sqSelected = sq
-		g.playAudio(MusicSelect)
-	} else if g.sqSelected != 0 && !g.bGameOver {
-		//如果点击的不是自己的棋子，但有棋子选中了(一定是自己的棋子,比如吃子)，那么走这个棋子
-		mv := move(g.sqSelected, sq)
-		if g.singlePosition.legalMove(mv) {
-			if g.singlePosition.makeMove(mv) {
-				g.mvLast = mv
-				g.sqSelected = 0
-				//tcp 更新对方棋盘
+		//sideTag 红方为8 黑方为16
+		if pc&sideTag(g.singlePosition.sdPlayer) != 0 {
+			//如果点击自己的棋子，那么直接选中
+			g.sqSelected = sq
+			g.playAudio(MusicSelect)
+		} else if g.sqSelected != 0 && !g.bGameOver {
+			//如果点击的不是自己的棋子，但有棋子选中了(一定是自己的棋子,比如吃子)，那么走这个棋子
+			mv := move(g.sqSelected, sq)
+			if g.singlePosition.legalMove(mv) {
+				//如果没有将军
+				if g.singlePosition.makeMove(mv) {
+					g.mvLast = mv
+					g.sqSelected = 0
+					//ws 更新对方棋盘
+					UpdateOtherBoard(g)
 
-				if g.singlePosition.isMate() {
-					// 如果分出胜负，那么播放胜负的声音，并且弹出不带声音的提示框
-					g.playAudio(MusicGameWin)
-					g.showValue = "Your Win!"
-					g.bGameOver = true
-				} else {
-					// 如果没有分出胜负，那么播放将军、吃子或一般走子的声音
-					if g.singlePosition.checked() {
-						g.playAudio(MusicJiang)
+					if g.singlePosition.isMate() {
+						// 如果分出胜负，那么播放胜负的声音，并且弹出不带声音的提示框
+						g.playAudio(MusicGameWin)
+						g.showValue = "Your Win!"
+						g.bGameOver = true
 					} else {
-						if pc != 0 {
-							g.playAudio(MusicEat)
+						// 如果没有分出胜负，那么播放将军、吃子或一般走子的声音
+						if g.singlePosition.checked() {
+							g.playAudio(MusicJiang)
 						} else {
-							g.playAudio(MusicPut)
+							if pc != 0 {
+								g.playAudio(MusicEat)
+							} else {
+								g.playAudio(MusicPut)
+							}
 						}
 					}
+				} else {
+					g.playAudio(MusicJiang) // 播放被将军的声音
 				}
-			} else {
-				g.playAudio(MusicJiang) // 播放被将军的声音
 			}
+			//如果根本就不符合走法(例如马不走日字)，那么不做任何处理
 		}
-		//如果根本就不符合走法(例如马不走日字)，那么不做任何处理
 	}
+	//如果没轮到自己，什么都不干
 }
 
 //messageBox 提示

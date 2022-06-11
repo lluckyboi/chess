@@ -20,10 +20,13 @@ func RUNENGINE() {
 	//登录注册
 	r.POST("/login", login)
 	//拿token
-	r.POST("/auth",authHandler)
+	r.POST("/auth", authHandler)
 	//进入房间
-	r.POST("/enterroom",JWTAuthMiddleware(),enterroom)
+	r.GET("/enterroom/:roomId", JWTAuthMiddleware(), enterroom)
 	//检查人数
-	r.POST("/checkroomcount",JWTAuthMiddleware(),checkroom)
+	r.POST("/checkroomcount", checkroom)
+
+	//r.GET("/test",test)
+
 	r.Run(":9921")
 }

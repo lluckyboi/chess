@@ -1,10 +1,19 @@
 package api
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"log"
 )
+
+type EnterRoomResp struct {
+	Play  bool   `json:"play"`
+	Enter bool   `json:"enter"`
+	Info  string `json:"info"`
+	Num   int    `json:"num"`
+}
+
 //断开ws时的handler
 func Rec(roomid string, conn *websocket.Conn) {
 	for {
@@ -14,59 +23,62 @@ func Rec(roomid string, conn *websocket.Conn) {
 			//如果是客户端发送，再close一遍
 			conn.Close()
 			delete(room, roomid)
-			delete(roomcount,roomid)
+			delete(roomcount, roomid)
 			return
 		}
 	}
 }
 
-func enterroom(c *gin.Context){
+func enterroom(c *gin.Context) {
 	conn, err := up.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		log.Println(err)
 		c.JSON(200, gin.H{
-			"play": false,
+			"play":  false,
 			"enter": false,
 			"info":  "failed",
+			"num":   0,
 		})
 		return
 	}
-	roomid:=c.PostForm("roomId")
+
+	roomid := c.Param("roomId")
 	//userId:=c.MustGet("Id")
 
 	//可以加入可以观战
-		mplock.Lock()
-		room[roomid] = conn
-		roomcount[roomid]++
-		mplock.Unlock()
-		go Rec(roomid, conn)
+	mplock.Lock()
+	room[roomid] = conn
+	roomcount[roomid]++
+	mplock.Unlock()
 
-		if roomcount[roomid]!=2{
-		//进去下棋
-		c.JSON(200,gin.H{
-			"play":true,
-			"enter":true,
-			"info":roomid,
-			"num":roomcount[roomid],
-		})
-	}else{
-		//观战去
-		c.JSON(200,gin.H{
-			"play":false,
-			"enter":true,
-			"info":"人数已满",
-			"num":roomcount[roomid],
-		})
+	resp := EnterRoomResp{}
+	if roomcount[roomid] <= 2 {
+		resp = EnterRoomResp{
+			Play:  true,
+			Enter: true,
+			Info:  "success",
+			Num:   roomcount[roomid],
+		}
+	} else {
+		resp = EnterRoomResp{
+			Play:  false,
+			Enter: true,
+			Info:  "success",
+			Num:   roomcount[roomid],
+		}
 	}
+	fmt.Println(resp)
+	conn.WriteJSON(resp)
+	go Rec(roomid, conn)
 }
 
-func checkroom(c *gin.Context){
-	roomId:=c.PostForm("roomId")
-	if roomcount[roomId]>=2{
-		c.JSON(200,gin.H{
-			"status":true,
+func checkroom(c *gin.Context) {
+	roomId := c.PostForm("roomId")
+	if roomcount[roomId] >= 2 {
+		c.JSON(200, gin.H{
+			"status": true,
 		})
-	}else{
+	} else {
 
 	}
 }

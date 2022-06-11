@@ -7,72 +7,75 @@ import (
 	"time"
 )
 
-
-
 func main() {
 	fmt.Println("please login: input you mail and name")
-	var mail,name,accode string
+	var mail, name, accode string
 	//输入用户名邮箱
-	fmt.Scanf("%s%s",&mail,&name)
+	fmt.Scanf("%s", &mail)
+	fmt.Scanf("%s", &name)
 
 	//获取邮箱验证码
-	msg:=tool.GetMailAc(mail)
+	msg := tool.GetMailAc(mail)
 	fmt.Println(msg.Info)
-	if msg.Code!=200{
+	if msg.Code != 200 {
 		return
 	}
 
 	//输入验证码
 	fmt.Println("input you mail access code:")
-	fmt.Scanf("%s",&accode)
+	fmt.Scanf("%s", &accode)
 
 	//用户登录
-	lmsg:=tool.Login(mail,name,accode)
-	if lmsg.Code!=200{
+	lmsg := tool.Login(mail, name, accode)
+	if lmsg.Code != 200 {
 		return
 	}
-	fmt.Println(lmsg.UserName+"登录注册成功")
+	fmt.Println(lmsg.UserName + "登录注册成功")
 
 	//拿token
-	gmsg:=tool.GetToken(mail,name,accode)
-	if gmsg.Code!=2000{
+	gmsg := tool.GetToken(mail, name, accode)
+	if gmsg.Code != 2000 {
 		return
 	}
 
 	//输入房间号
 	var roomId string
 	fmt.Println("please input roomId:")
-	fmt.Scanf("%s",&roomId)
+	fmt.Scanf("%s", &roomId)
 
 	//加入房间
-	emsg:=tool.EnterRoom(roomId)
-	if emsg.Enter{
+	emsg, c := tool.EnterRoom(roomId, gmsg.Token)
+	if emsg.Enter {
 		fmt.Println("成功进入房间！")
-		if emsg.Play{
+		if emsg.Play {
 			fmt.Println("成功加入对局！")
-		}else{
+		} else {
 			fmt.Println("当前仅能观战！")
 		}
-	}else{
+	} else {
 		fmt.Println("进入房间失败！")
 		return
 	}
 
 	//预处理资源
-	tool.FileToByte("./resource","./chess")
+	tool.FileToByte("./resource", "./chess")
 
 	//如果成功加入对战
-	if emsg.Enter&&emsg.Play{
+	if emsg.Enter && emsg.Play {
 		//轮询，人满即开
-		for{
-			cmsg:=tool.CheckRoomCount(roomId)
-			if cmsg.Status==true{
+		fmt.Println("waitting for player")
+		for {
+			cmsg := tool.CheckRoomCount(roomId)
+			if cmsg.Status == true {
 				break
 			}
 			time.Sleep(time.Second)
-		}
 
+			break
+		}
+		fmt.Println("success")
+		chess.Conn = c
 		//启动游戏 先进入的为红方
-		chess.NewGame(emsg.Num-1)
+		chess.NewGame(emsg.Num - 1)
 	}
 }
