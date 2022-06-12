@@ -87,10 +87,10 @@ func getmailac(c *gin.Context) {
 	if err != nil {
 		tool.RespInternalError(c)
 		log.Println(err)
-		return
+	} else {
+		c.JSON(200, gin.H{
+			"code": 200,
+			"info": "Send Email Success",
+		})
 	}
-	c.JSON(200, gin.H{
-		"code": 200,
-		"info": "Send Email Success",
-	})
 }
