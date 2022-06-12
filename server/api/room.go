@@ -23,7 +23,7 @@ func Rec(roomid string, conn *websocket.Conn) {
 			//如果是客户端发送，再close一遍
 			conn.Close()
 			delete(room, conn)
-			delete(roomcount, roomid)
+			roomcount[roomid]--
 			return
 		}
 	}

@@ -34,13 +34,15 @@ func main() {
 	//拿token
 	gmsg := tool.GetToken(mail, name, accode)
 	if gmsg.Code != 2000 {
-		fmt.Println("出错了")
+		fmt.Println("出错了 请重试")
 		return
 	}
 
+	chess.Gmsg = gmsg
+
 	fmt.Println(lmsg.UserName + "登录注册成功")
 	fmt.Println("你的胜场是：")
-
+	fmt.Println(tool.GetWinCount(gmsg.Token))
 	//输入房间号
 	var roomId string
 	fmt.Println("please input roomId:")

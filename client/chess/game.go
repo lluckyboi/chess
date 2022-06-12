@@ -37,6 +37,7 @@ type Game struct {
 var Conn *websocket.Conn
 var RoomId string
 var wg sync.WaitGroup
+var Gmsg tool.GetTokenResp
 
 //NewGame 创建象棋程序
 func NewGame(sd int) bool {
@@ -101,7 +102,6 @@ func (g *Game) Update(screen *ebiten.Image) error {
 
 	g.drawBoard(screen)
 	if g.bGameOver {
-		tool.AddWinCount()
 		g.messageBox(screen)
 	}
 	return nil
@@ -218,13 +218,13 @@ func (g *Game) clickSquare(screen *ebiten.Image, sq int) {
 				if g.singlePosition.makeMove(mv) {
 					g.mvLast = mv
 					g.sqSelected = 0
-					//ws 更新棋盘
-					UpdateOtherBoard(g)
 					if g.singlePosition.isMate() {
 						// 如果分出胜负，那么播放胜负的声音，并且弹出不带声音的提示框
 						g.playAudio(MusicGameWin)
-						g.showValue = "Your Win!"
+						tool.AddWinCount(Gmsg.Token)
 						g.bGameOver = true
+						//ws 更新棋盘
+						UpdateOtherBoard(g)
 					} else {
 						// 如果没有分出胜负，那么播放将军、吃子或一般走子的声音
 						if g.singlePosition.checked() {
@@ -236,6 +236,8 @@ func (g *Game) clickSquare(screen *ebiten.Image, sq int) {
 								g.playAudio(MusicPut)
 							}
 						}
+						//ws 更新棋盘
+						UpdateOtherBoard(g)
 					}
 				} else {
 					g.playAudio(MusicJiang) // 播放被将军的声音
@@ -249,6 +251,11 @@ func (g *Game) clickSquare(screen *ebiten.Image, sq int) {
 
 //messageBox 提示
 func (g *Game) messageBox(screen *ebiten.Image) {
+	if g.side == (1 - g.singlePosition.SdPlayer) {
+		g.showValue = "You Win!"
+	} else {
+		g.showValue = "You Lose!"
+	}
 	fmt.Println(g.showValue)
 	tt, err := truetype.Parse(fonts.ArcadeN_ttf)
 	if err != nil {
@@ -261,6 +268,5 @@ func (g *Game) messageBox(screen *ebiten.Image) {
 		Hinting: font.HintingFull,
 	})
 
-	text.Draw(screen, g.showValue, arcadeFont, 180, 288, color.White)
-	text.Draw(screen, "Click mouse to restart", arcadeFont, 100, 320, color.White)
+	text.Draw(screen, g.showValue, arcadeFont, 180, 288, color.Black)
 }

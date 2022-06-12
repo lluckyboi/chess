@@ -72,7 +72,9 @@ func addwin(c *gin.Context) {
 func getwincount(c *gin.Context) {
 	userid := tool.GetInterfaceToInt(c.MustGet("UserId"))
 	wt := service.SearchWinCount(userid)
-	c.String(200, "胜场：", wt)
+	c.JSON(200, gin.H{
+		"win_count": wt,
+	})
 }
 
 //获取邮箱验证码

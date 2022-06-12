@@ -38,6 +38,10 @@ type CheckRoomCountResp struct {
 	Status bool `json:"status"`
 }
 
+type WinResp struct {
+	WinCount int `json:"win_count"`
+}
+
 const addr = "http://39.106.81.229"
 const port = "9924"
 
@@ -91,7 +95,7 @@ func GetToken(mail, name, accode string) GetTokenResp {
 
 func EnterRoom(roomId string, token string) (EnterRoomResp, *websocket.Conn) {
 	headers := http.Header{}
-	headers.Set("Authorization", "Bearer "+token)
+	headers.Add("Authorization", "Bearer "+token)
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
@@ -131,14 +135,28 @@ func CheckRoomCount(roomId string) CheckRoomCountResp {
 
 	msg := CheckRoomCountResp{}
 	json.Unmarshal(body, &msg)
-	log.Println(msg)
-
 	return msg
 }
 
-func AddWinCount() {
-	_, err := http.Get(addr + ":" + port + "/addwin")
+func AddWinCount(token string) {
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", addr+":"+port+"/addwin", nil)
+	req.Header.Add("Authorization", "Bearer "+token)
+	resp, _ := client.Do(req)
+	defer resp.Body.Close()
+}
+
+func GetWinCount(token string) int {
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", addr+":"+port+"/getwincount", nil)
+	req.Header.Add("Authorization", "Bearer "+token)
+	resp, _ := client.Do(req)
+	ws := WinResp{}
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err)
 	}
+	json.Unmarshal(body, &ws)
+	defer resp.Body.Close()
+	return ws.WinCount
 }
