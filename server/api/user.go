@@ -57,10 +57,22 @@ func login(c *gin.Context) {
 			return
 		}
 	}
-	c.JSON(200,gin.H{
-		"code":200,
-		"username":userName,
+	c.JSON(200, gin.H{
+		"code":     200,
+		"username": userName,
 	})
+}
+
+//加胜场
+func addwin(c *gin.Context) {
+	userid := tool.GetInterfaceToInt(c.MustGet("UserId"))
+	service.AddWinCount(userid)
+}
+
+func getwincount(c *gin.Context) {
+	userid := tool.GetInterfaceToInt(c.MustGet("UserId"))
+	wt := service.SearchWinCount(userid)
+	c.String(200, "胜场：", wt)
 }
 
 //获取邮箱验证码

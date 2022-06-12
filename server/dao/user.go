@@ -2,7 +2,7 @@ package dao
 
 import "MyChess/server/model"
 
-func SelectUserByUserName(username string)(model.User,error){
+func SelectUserByUserName(username string) (model.User, error) {
 	User := model.User{}
 	sqlstr := "select id,username,User_mail from user where username=?"
 	//单行查询
@@ -21,10 +21,26 @@ func SelectUserByUserName(username string)(model.User,error){
 
 func InsertUser(user model.User) error {
 	sqlstr := "insert into user(username, user_mail)values(?,?);"
-	_, errs := Db.Exec(sqlstr, user.UserName,user.UserMail)
+	_, errs := Db.Exec(sqlstr, user.UserName, user.UserMail)
 	if errs != nil {
 		return errs
 	}
 	return nil
 }
 
+func UpdateWinCount(userid int) error {
+	wt := 0
+	sqlstr := "select win_count from user where id=?"
+	err := Db.QueryRow(sqlstr, userid).Scan(&wt)
+
+	sqlstr = "update user set win_count=? where id=?"
+	_, err = Db.Exec(sqlstr, wt+1, userid)
+	return err
+}
+
+func SelectWinCount(userid int) int {
+	var wt int
+	sqlstr := "select win_count from user where id=? "
+	Db.QueryRow(sqlstr, userid).Scan(&wt)
+	return wt
+}

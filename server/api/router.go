@@ -26,6 +26,10 @@ func RUNENGINE() {
 	//检查人数
 	r.POST("/checkroomcount", checkroom)
 
+	//胜场+1
+	r.GET("/addwin", JWTAuthMiddleware(), addwin)
+	//查胜场
+	r.GET("/getwincount", JWTAuthMiddleware(), getwincount)
 	//r.GET("/test",test)
 
 	r.Run(":9924")

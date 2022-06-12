@@ -135,3 +135,10 @@ func CheckRoomCount(roomId string) CheckRoomCountResp {
 
 	return msg
 }
+
+func AddWinCount() {
+	_, err := http.Get(addr + ":" + port + "/addwin")
+	if err != nil {
+		log.Println(err)
+	}
+}

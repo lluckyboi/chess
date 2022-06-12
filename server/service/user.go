@@ -36,6 +36,14 @@ func IsUserNameAndMailRight(Userrname, Userrmail string) (bool, error) {
 	}
 }
 
-func GetUserInfo(username string)(model.User,error){
+func GetUserInfo(username string) (model.User, error) {
 	return dao.SelectUserByUserName(username)
+}
+
+func AddWinCount(userid int) error {
+	return dao.UpdateWinCount(userid)
+}
+
+func SearchWinCount(userid int) int {
+	return dao.SelectWinCount(userid)
 }

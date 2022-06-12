@@ -39,6 +39,7 @@ func main() {
 	}
 
 	fmt.Println(lmsg.UserName + "登录注册成功")
+	fmt.Println("你的胜场是：")
 
 	//输入房间号
 	var roomId string
@@ -80,7 +81,7 @@ func main() {
 		//启动游戏 先进入的为红方
 		chess.NewGame(emsg.Num - 1)
 	} else if emsg.Enter && !emsg.Play {
-		//观战
-
+		//第三方观战
+		chess.NewGame(3)
 	}
 }

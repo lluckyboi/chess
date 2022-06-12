@@ -1,6 +1,7 @@
 package chess
 
 import (
+	"MyChess/client/tool"
 	"bytes"
 	"fmt"
 	"github.com/golang/freetype/truetype"
@@ -62,8 +63,6 @@ func NewGame(sd int) bool {
 		return false
 	}
 
-	game.showValue = "by fxr"
-
 	//初始化棋盘 红方先走
 	game.singlePosition.startup()
 
@@ -102,6 +101,7 @@ func (g *Game) Update(screen *ebiten.Image) error {
 
 	g.drawBoard(screen)
 	if g.bGameOver {
+		tool.AddWinCount()
 		g.messageBox(screen)
 	}
 	return nil
