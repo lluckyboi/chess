@@ -28,8 +28,7 @@ func login(c *gin.Context) {
 	isnok, err := service.IsUserNameExist(userName)
 	if err != nil {
 		tool.RespInternalError(c)
-		tool.Logger.Info("Success..",
-			zap.String("info", "check username exist err"),
+		tool.Logger.Info("check username exist err",
 			zap.Error(err))
 		return
 	}
@@ -43,8 +42,7 @@ func login(c *gin.Context) {
 		err = service.NewUser(user)
 		if err != nil {
 			tool.RespInternalError(c)
-			tool.Logger.Info("Success..",
-				zap.String("info", "new user err"),
+			tool.Logger.Info("new user err",
 				zap.Error(err))
 			return
 		}
@@ -52,8 +50,7 @@ func login(c *gin.Context) {
 		isr, errr := service.IsUserNameAndMailRight(userName, userMail)
 		if errr != nil {
 			tool.RespInternalError(c)
-			tool.Logger.Info("Success..",
-				zap.String("info", "check username and mail err"),
+			tool.Logger.Info("check username and mail err",
 				zap.Error(err))
 			return
 		}
@@ -94,8 +91,7 @@ func getmailac(c *gin.Context) {
 	err := SendMail(mails)
 	if err != nil {
 		tool.RespInternalError(c)
-		tool.Logger.Info("Success..",
-			zap.String("info", "send mail err"),
+		tool.Logger.Info("send mail err",
 			zap.Error(err))
 	} else {
 		c.JSON(200, gin.H{

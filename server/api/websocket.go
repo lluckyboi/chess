@@ -1,9 +1,11 @@
 package api
 
 import (
+	"MyChess/server/tool"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"go.uber.org/zap"
 	"log"
 	"net"
 	"net/http"
@@ -100,7 +102,8 @@ func WsBroadcast() {
 				if Msg.RoomId == j {
 					err := i.WriteJSON(Msg)
 					if err != nil {
-						log.Println("ws board err ", err)
+						tool.Logger.Info("ws board err",
+							zap.Error(err))
 					}
 				}
 			}
