@@ -18,9 +18,10 @@ func login(c *gin.Context) {
 			"code": 200,
 			"err":  "验证码错误",
 		})
-		return
+	} else {
+		delete(MalilList, userMail)
+
 	}
-	delete(MalilList, userMail)
 
 	//check
 	isnok, err := service.IsUserNameExist(userName)

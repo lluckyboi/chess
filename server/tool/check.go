@@ -1,3 +1,8 @@
+/**
+ *@Author:sario
+ *Date:2022/7/16
+ *@Desc:
+ */
 package tool
 
 func LengthCheck(ss string) (string, bool) {
