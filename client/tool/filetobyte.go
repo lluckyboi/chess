@@ -56,7 +56,7 @@ func FileToByte(inPath, outPath string) error {
 		}
 
 		//写入输出文件
-		if varName!=""{
+		if varName != "" {
 			if _, err := fmt.Fprintf(fOut, " %s : []byte(%q),\n", varName, bs); err != nil {
 				return err
 			}

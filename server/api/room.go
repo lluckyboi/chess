@@ -1,10 +1,11 @@
 package api
 
 import (
+	"MyChess/server/tool"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"log"
+	"go.uber.org/zap"
 )
 
 type EnterRoomResp struct {
@@ -19,7 +20,9 @@ func Rec(roomid string, conn *websocket.Conn) {
 	for {
 		_, _, err := conn.ReadMessage()
 		if err != nil {
-			log.Println("coon.ReadMessage() err:", err)
+			tool.Logger.Info("Success..",
+				zap.String("info", "coon.ReadMessage() err"),
+				zap.Error(err))
 			//如果是客户端发送，再close一遍
 			conn.Close()
 			delete(room, conn)
@@ -32,7 +35,9 @@ func Rec(roomid string, conn *websocket.Conn) {
 func enterroom(c *gin.Context) {
 	conn, err := up.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
-		log.Println(err)
+		tool.Logger.Info("Success..",
+			zap.String("info", "enter room err"),
+			zap.Error(err))
 		c.JSON(200, gin.H{
 			"play":  false,
 			"enter": false,

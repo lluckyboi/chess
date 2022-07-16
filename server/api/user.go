@@ -5,6 +5,7 @@ import (
 	"MyChess/server/service"
 	"MyChess/server/tool"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"log"
 )
 
@@ -27,7 +28,9 @@ func login(c *gin.Context) {
 	isnok, err := service.IsUserNameExist(userName)
 	if err != nil {
 		tool.RespInternalError(c)
-		log.Println(err)
+		tool.Logger.Info("Success..",
+			zap.String("info", "check username exist err"),
+			zap.Error(err))
 		return
 	}
 
@@ -40,14 +43,18 @@ func login(c *gin.Context) {
 		err = service.NewUser(user)
 		if err != nil {
 			tool.RespInternalError(c)
-			log.Println(err)
+			tool.Logger.Info("Success..",
+				zap.String("info", "new user err"),
+				zap.Error(err))
 			return
 		}
 	} else {
 		isr, errr := service.IsUserNameAndMailRight(userName, userMail)
 		if errr != nil {
 			tool.RespInternalError(c)
-			log.Println(errr)
+			tool.Logger.Info("Success..",
+				zap.String("info", "check username and mail err"),
+				zap.Error(err))
 			return
 		}
 		if !isr {
@@ -87,7 +94,9 @@ func getmailac(c *gin.Context) {
 	err := SendMail(mails)
 	if err != nil {
 		tool.RespInternalError(c)
-		log.Println(err)
+		tool.Logger.Info("Success..",
+			zap.String("info", "send mail err"),
+			zap.Error(err))
 	} else {
 		c.JSON(200, gin.H{
 			"code": 200,
