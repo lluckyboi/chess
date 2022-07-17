@@ -28,10 +28,11 @@ func initRedis() (err error) {
 
 func RUNDB() {
 	//启用数据库
-	db, err := sql.Open("mysql", "chess:kxXHFphHhTYKp7se@/chess")
+	db, err := sql.Open("mysql", "root:WADX750202@/chess")
 	if err != nil {
 		log.Fatal(err)
 	}
 	Db = db
+
 	//initRedis()
 }

@@ -31,6 +31,14 @@ var up = websocket.Upgrader{
 	},
 } //websocket协议升级结构体
 
+//type RoomAndLock struct {
+//	MsgCh			chan[500] PositionStruct			//信息广播通道
+//	RoomCountLock	sync.Mutex
+//	RoomLock		sync.Mutex
+//	Room 			map[*websocket.Conn]string			//房间map
+//	RoomCount		map[string]int						//房间人数
+//}
+
 var MsgCh = make(chan PositionStruct, 500)  //信息广播通道
 var mplock sync.Mutex                       //map锁
 var mlock sync.Mutex                        //map锁

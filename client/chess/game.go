@@ -71,8 +71,10 @@ func NewGame(sd int) bool {
 	game.singlePosition.RoomId = RoomId
 
 	//更新棋盘
-	wg.Add(1)
-	go UpdateBoard(game)
+	if sd != -2 {
+		wg.Add(1)
+		go UpdateBoard(game)
+	}
 
 	//设置窗口大小
 	ebiten.SetWindowSize(BoardWidth, BoardHeight)
@@ -81,11 +83,13 @@ func NewGame(sd int) bool {
 	//刷新帧数20
 	ebiten.SetMaxTPS(20)
 
-	if err := ebiten.RunGame(game); err != nil {
-		log.Fatal(err)
-		return false
+	if sd != -2 {
+		if err := ebiten.RunGame(game); err != nil {
+			log.Fatal(err)
+			return false
+		}
+		wg.Wait()
 	}
-	wg.Wait()
 	return true
 }
 
