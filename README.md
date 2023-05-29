@@ -1,3 +1,6 @@
+# 双人象棋
+go实现的双人象棋，支持在线对战
+
 # 功能描述
 ![image](https://img.shields.io/badge/testes-66.7%25-green)
 
